@@ -1,4 +1,4 @@
-# Hotel-Reservation-DB
+# Hotel-Reservation-DB [![My Skills](https://skillicons.dev/icons?i=mysql)](https://skillicons.dev)
 
 School project in which we collaborated with a team of students to create a database using mySQL for a hotel reservation system.
 
