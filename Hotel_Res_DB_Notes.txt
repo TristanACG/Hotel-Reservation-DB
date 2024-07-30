@@ -1,0 +1,102 @@
+Hotel Reservation DB:
+	
+- Create Table Commands:
+CREATE TABLE Customers (
+  CustomerID INT AUTO_INCREMENT,
+  FirstName VARCHAR(20),
+  LastName VARCHAR(20),
+  Email VARCHAR(40),
+  PhoneNumber VARCHAR(10),
+  Address TEXT,
+  PRIMARY KEY (CustomerID)
+);
+
+CREATE TABLE Rooms (
+  RoomID INT AUTO_INCREMENT,
+  RoomNumber VARCHAR(10),
+  RoomType VARCHAR(20),
+  PricePerNight DECIMAL(10,2),
+  MaxOccupancy INT,
+  CurrentStatus VARCHAR(20),
+  PRIMARY KEY (RoomID)
+);
+
+CREATE TABLE Bookings (
+  BookingID INT AUTO_INCREMENT,
+  CustomerID INT,
+  RoomID INT,
+  CheckInDate DATE,
+  CheckOutDate DATE,
+  NumberOfGuests INT,
+  BookingStatus VARCHAR(20),
+  PRIMARY KEY (BookingID),
+  FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID),
+  FOREIGN KEY (RoomID) REFERENCES Rooms(RoomID)
+);
+
+CREATE TABLE Payments (
+  PaymentID INT AUTO_INCREMENT,
+  BookingID INT,
+  PaymentDate DATE,
+  PaymentMethod VARCHAR(20),
+  AmountPaid DECIMAL(10,2),
+  PRIMARY KEY (PaymentID),
+  FOREIGN KEY (BookingID) REFERENCES Bookings(BookingID)
+);
+
+CREATE TABLE Services (
+  ServiceID INT AUTO_INCREMENT,
+  ServiceName VARCHAR(50),
+  Description TEXT,
+  Price DECIMAL(10,2),
+  PRIMARY KEY (ServiceID)
+);
+
+CREATE TABLE Booking_Services (
+  BookingServiceID INT AUTO_INCREMENT,
+  BookingID INT,
+  ServiceID INT,
+  Quantity INT,
+  ServiceDate DATE,
+  PRIMARY KEY (BookingServiceID),
+  FOREIGN KEY (BookingID) REFERENCES Bookings(BookingID),
+  FOREIGN KEY (ServiceID) REFERENCES Services(ServiceID)
+);
+
+
+Create View Commands:
+- This First View is used to see what the current Hotel Bookings are:
+
+CREATE VIEW CurrentBookingsView AS
+SELECT
+  Bookings.BookingID,
+  CONCAT(Customers.FirstName, ' ', Customers.LastName) AS CustomerName,
+  Customers.Email,
+  Rooms.RoomNumber,
+  Rooms.RoomType,
+  Bookings.CheckInDate,
+  Bookings.CheckOutDate,
+  Bookings.BookingStatus
+FROM Bookings
+JOIN Customers ON Bookings.CustomerID = Customers.CustomerID
+JOIN Rooms ON Bookings.RoomID = Rooms.RoomID
+WHERE Bookings.CheckInDate <= CURDATE() AND Bookings.CheckOutDate >= CURDATE() AND Bookings.BookingStatus IN ('Confirmed', 'Checked-In');
+
+- This second view is to see the current available rooms within the Hotel:
+CREATE VIEW `AvailableRoomsView` AS
+SELECT
+  Rooms.RoomID,
+  Rooms.RoomNumber,
+  Rooms.RoomType,
+  Rooms.PricePerNight,
+  Rooms.MaxOccupancy,
+  Rooms.CurrentStatus
+FROM Rooms
+WHERE NOT EXISTS (
+  SELECT *
+  FROM Bookings
+  WHERE Bookings.RoomID = Rooms.RoomID AND Bookings.CheckInDate <= CURDATE() AND Bookings.CheckOutDate >= CURDATE() AND Bookings.BookingStatus IN ('Confirmed', 'Checked-In')
+) AND Rooms.CurrentStatus = 'Available';
+
+
+Example Commands Per Table:
